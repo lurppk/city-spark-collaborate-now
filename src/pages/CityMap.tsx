@@ -2,36 +2,93 @@
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import LiveMap from '@/components/LiveMap';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Filter, RefreshCw, AlertTriangle, CheckCircle, Clock, Users, Navigation as NavigationIcon, Search, Layers } from 'lucide-react';
+import { MapPin, Users, Navigation as NavigationIcon, Search, Layers, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+// Mock data for demonstration - replace with real data from your backend
+const mockIssues = [
+  {
+    id: '1',
+    title: 'Broken streetlight on Main St',
+    description: 'Streetlight has been out for 3 days, creating safety concerns for pedestrians.',
+    latitude: 40.7589,
+    longitude: -73.9851,
+    status: 'urgent' as const,
+    category: 'Infrastructure',
+    createdAt: '2024-01-15T08:30:00Z',
+    votes: 12,
+    reportedBy: 'John D.'
+  },
+  {
+    id: '2',
+    title: 'Pothole on Oak Street',
+    description: 'Large pothole causing damage to vehicles and creating hazard.',
+    latitude: 40.7614,
+    longitude: -73.9776,
+    status: 'in-progress' as const,
+    category: 'Roads',
+    createdAt: '2024-01-14T14:20:00Z',
+    votes: 8,
+    reportedBy: 'Sarah M.'
+  },
+  {
+    id: '3',
+    title: 'Park cleanup completed',
+    description: 'Community cleanup event successfully completed in Central Park area.',
+    latitude: 40.7505,
+    longitude: -73.9934,
+    status: 'resolved' as const,
+    category: 'Parks',
+    createdAt: '2024-01-13T10:15:00Z',
+    votes: 24,
+    reportedBy: 'Parks Dept.'
+  },
+  {
+    id: '4',
+    title: 'New crosswalk requested',
+    description: 'Parents requesting safer crosswalk near elementary school.',
+    latitude: 40.7549,
+    longitude: -73.9840,
+    status: 'pending' as const,
+    category: 'Safety',
+    createdAt: '2024-01-12T16:45:00Z',
+    votes: 31,
+    reportedBy: 'Parent Committee'
+  },
+  {
+    id: '5',
+    title: 'Graffiti removal needed',
+    description: 'Vandalism on community center wall needs attention.',
+    latitude: 40.7580,
+    longitude: -73.9855,
+    status: 'pending' as const,
+    category: 'Maintenance',
+    createdAt: '2024-01-11T09:30:00Z',
+    votes: 7,
+    reportedBy: 'Community Center'
+  }
+];
 
 const CityMap = () => {
-  const [selectedFilter, setSelectedFilter] = useState('all');
   const [viewMode, setViewMode] = useState('standard');
-  
-  const issueTypes = [
-    { id: 'all', label: 'All Issues', count: 42, color: 'bg-slate-100 text-slate-700' },
-    { id: 'urgent', label: 'Urgent', count: 8, color: 'bg-red-100 text-red-700' },
-    { id: 'in-progress', label: 'In Progress', count: 15, color: 'bg-blue-100 text-blue-700' },
-    { id: 'resolved', label: 'Resolved', count: 19, color: 'bg-green-100 text-green-700' }
-  ];
+  const [selectedIssue, setSelectedIssue] = useState<any>(null);
+  const navigate = useNavigate();
 
-  const mapMarkers = [
-    { id: 1, lat: 40.7589, lng: -73.9851, type: 'urgent', title: 'Broken streetlight', votes: 12 },
-    { id: 2, lat: 40.7614, lng: -73.9776, type: 'in-progress', title: 'Pothole repair', votes: 8 },
-    { id: 3, lat: 40.7505, lng: -73.9934, type: 'resolved', title: 'Park cleanup', votes: 24 },
-    { id: 4, lat: 40.7549, lng: -73.9840, type: 'in-progress', title: 'New crosswalk', votes: 31 }
-  ];
+  const handleIssueClick = (issue: any) => {
+    setSelectedIssue(issue);
+    console.log('Issue clicked:', issue);
+  };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'urgent': return <AlertTriangle className="w-4 h-4 text-red-500" />;
-      case 'in-progress': return <Clock className="w-4 h-4 text-blue-500" />;
-      case 'resolved': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      default: return <MapPin className="w-4 h-4 text-slate-500" />;
-    }
+  const issueStats = {
+    total: mockIssues.length,
+    urgent: mockIssues.filter(i => i.status === 'urgent').length,
+    inProgress: mockIssues.filter(i => i.status === 'in-progress').length,
+    resolved: mockIssues.filter(i => i.status === 'resolved').length,
+    pending: mockIssues.filter(i => i.status === 'pending').length
   };
 
   return (
@@ -41,7 +98,9 @@ const CityMap = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Interactive City Map</h1>
-          <p className="text-lg text-slate-600">Explore your city in real-time. See issues, track progress, and stay connected.</p>
+          <p className="text-lg text-slate-600">
+            Explore your city in real-time. See issues, track progress, and stay connected.
+          </p>
         </div>
 
         {/* Map Controls */}
@@ -53,7 +112,7 @@ const CityMap = () => {
               onClick={() => setViewMode('standard')}
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Standard
+              Map View
             </Button>
             <Button 
               variant={viewMode === 'satellite' ? 'default' : 'outline'} 
@@ -66,118 +125,144 @@ const CityMap = () => {
             <Button 
               variant={viewMode === 'ar' ? 'default' : 'outline'} 
               size="sm"
-              onClick={() => setViewMode('ar')}
+              onClick={() => navigate('/report')}
             >
               <NavigationIcon className="w-4 h-4 mr-2" />
-              AR View
+              AR Report
             </Button>
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Search className="w-4 h-4 mr-2" />
-              Search Location
-            </Button>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+            <Button 
+              onClick={() => navigate('/report')}
+              className="bg-gradient-to-r from-blue-600 to-green-600 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Report Issue
             </Button>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Map Area */}
-          <div className="lg:col-span-3">
-            <Card className="p-6 h-96 bg-gradient-to-br from-blue-50 to-green-50 border-slate-200">
-              <div className="flex items-center justify-center h-full bg-white rounded-lg border-2 border-dashed border-slate-200 relative">
-                <div className="text-center">
-                  <MapPin className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                  <p className="text-slate-500 font-medium">Interactive City Map</p>
-                  <p className="text-sm text-slate-400">Real-time issue visualization</p>
-                </div>
-                
-                {/* Simulated map markers */}
-                <div className="absolute top-4 left-4 bg-red-500 w-3 h-3 rounded-full animate-pulse"></div>
-                <div className="absolute top-16 right-8 bg-blue-500 w-3 h-3 rounded-full animate-pulse"></div>
-                <div className="absolute bottom-8 left-12 bg-green-500 w-3 h-3 rounded-full"></div>
-                <div className="absolute bottom-16 right-4 bg-orange-500 w-3 h-3 rounded-full animate-pulse"></div>
-              </div>
-            </Card>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <Card className="p-4 text-center">
+            <div className="text-2xl font-bold text-slate-800">{issueStats.total}</div>
+            <div className="text-sm text-slate-600">Total Issues</div>
+          </Card>
+          <Card className="p-4 text-center border-red-200 bg-red-50">
+            <div className="text-2xl font-bold text-red-600">{issueStats.urgent}</div>
+            <div className="text-sm text-red-600">Urgent</div>
+          </Card>
+          <Card className="p-4 text-center border-blue-200 bg-blue-50">
+            <div className="text-2xl font-bold text-blue-600">{issueStats.inProgress}</div>
+            <div className="text-sm text-blue-600">In Progress</div>
+          </Card>
+          <Card className="p-4 text-center border-green-200 bg-green-50">
+            <div className="text-2xl font-bold text-green-600">{issueStats.resolved}</div>
+            <div className="text-sm text-green-600">Resolved</div>
+          </Card>
+          <Card className="p-4 text-center border-yellow-200 bg-yellow-50">
+            <div className="text-2xl font-bold text-yellow-600">{issueStats.pending}</div>
+            <div className="text-sm text-yellow-600">Pending</div>
+          </Card>
+        </div>
 
-            {/* Map Legend */}
-            <Card className="p-4 mt-4">
-              <h4 className="font-semibold text-slate-800 mb-3">Map Legend</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {issueTypes.map((type) => (
-                  <div key={type.id} className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${type.id === 'urgent' ? 'bg-red-500' : type.id === 'in-progress' ? 'bg-blue-500' : type.id === 'resolved' ? 'bg-green-500' : 'bg-slate-500'}`}></div>
-                    <span className="text-sm text-slate-600">{type.label}</span>
-                    <Badge className={type.color}>{type.count}</Badge>
-                  </div>
-                ))}
-              </div>
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Live Map */}
+          <div className="lg:col-span-3">
+            <Card className="p-0 overflow-hidden">
+              <LiveMap
+                issues={mockIssues}
+                onIssueClick={handleIssueClick}
+                height="600px"
+                enableClustering={true}
+                enableFiltering={true}
+              />
             </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Filter Panel */}
-            <Card className="p-4">
-              <h4 className="font-semibold text-slate-800 mb-3">Filter Issues</h4>
-              <div className="space-y-2">
-                {issueTypes.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => setSelectedFilter(type.id)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
-                      selectedFilter === type.id 
-                        ? 'border-blue-200 bg-blue-50' 
-                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="font-medium text-slate-700">{type.label}</span>
-                    <Badge className={type.color}>{type.count}</Badge>
-                  </button>
-                ))}
-              </div>
-            </Card>
+            {/* Selected Issue Details */}
+            {selectedIssue && (
+              <Card className="p-4">
+                <h4 className="font-semibold text-slate-800 mb-3">Issue Details</h4>
+                <div className="space-y-3">
+                  <div>
+                    <h5 className="font-medium text-sm">{selectedIssue.title}</h5>
+                    <p className="text-xs text-gray-600 mt-1">{selectedIssue.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Badge 
+                      className={
+                        selectedIssue.status === 'urgent' ? 'bg-red-100 text-red-700' :
+                        selectedIssue.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                        selectedIssue.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }
+                    >
+                      {selectedIssue.status.replace('-', ' ')}
+                    </Badge>
+                    <div className="flex items-center text-xs text-slate-500">
+                      <Users className="w-3 h-3 mr-1" />
+                      {selectedIssue.votes} votes
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <p>Category: {selectedIssue.category}</p>
+                    <p>Reported by: {selectedIssue.reportedBy}</p>
+                    <p>Date: {new Date(selectedIssue.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <Button size="sm" className="w-full">
+                    View Full Details
+                  </Button>
+                </div>
+              </Card>
+            )}
 
             {/* Quick Actions */}
             <Card className="p-4">
               <h4 className="font-semibold text-slate-800 mb-3">Quick Actions</h4>
               <div className="space-y-2">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white">
+                <Button 
+                  onClick={() => navigate('/report')}
+                  className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white"
+                >
                   <MapPin className="w-4 h-4 mr-2" />
                   Report New Issue
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => navigate('/community')}
+                >
                   <Users className="w-4 h-4 mr-2" />
-                  Join Community Discussion
+                  Join Discussion
                 </Button>
               </div>
             </Card>
 
-            {/* Nearby Issues */}
+            {/* Recent Activity */}
             <Card className="p-4">
-              <h4 className="font-semibold text-slate-800 mb-3">Nearby Issues</h4>
+              <h4 className="font-semibold text-slate-800 mb-3">Recent Activity</h4>
               <div className="space-y-3">
-                {mapMarkers.slice(0, 3).map((marker) => (
-                  <div key={marker.id} className="p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors">
-                    <div className="flex items-start space-x-3">
-                      {getStatusIcon(marker.type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-slate-800 truncate">{marker.title}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-slate-400">0.2 miles away</span>
-                          <div className="flex items-center text-xs text-slate-500">
-                            <Users className="w-3 h-3 mr-1" />
-                            {marker.votes}
-                          </div>
-                        </div>
+                {mockIssues.slice(0, 3).map((issue) => (
+                  <div 
+                    key={issue.id} 
+                    className="p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => setSelectedIssue(issue)}
+                  >
+                    <p className="font-medium text-sm text-slate-800 truncate">{issue.title}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs"
+                      >
+                        {issue.category}
+                      </Badge>
+                      <div className="flex items-center text-xs text-slate-500">
+                        <Users className="w-3 h-3 mr-1" />
+                        {issue.votes}
                       </div>
                     </div>
                   </div>
@@ -185,6 +270,16 @@ const CityMap = () => {
               </div>
             </Card>
           </div>
+        </div>
+
+        {/* Real-time Connection Status */}
+        <div className="fixed bottom-4 right-4 z-10">
+          <Card className="p-2 bg-green-500 text-white">
+            <div className="flex items-center space-x-2 text-sm">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span>Live Updates Active</span>
+            </div>
+          </Card>
         </div>
       </div>
       
