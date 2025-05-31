@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MapPin, MessageSquare, Users, Zap, ArrowRight, Heart } from 'lucide-react';
@@ -53,14 +54,18 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-8 py-3 text-lg">
-              Start Making a Difference
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <Link to="/report">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-8 py-3 text-lg">
+                Start Making a Difference
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
             
-            <Button variant="outline" size="lg" className="border-blue-200 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg">
-              Explore City Map
-            </Button>
+            <Link to="/map">
+              <Button variant="outline" size="lg" className="border-blue-200 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg">
+                Explore City Map
+              </Button>
+            </Link>
           </div>
 
           {/* Trust Indicators */}

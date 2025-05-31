@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,10 +73,12 @@ const CommunityEngagement = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-2xl font-bold text-slate-800">Active Votes</h3>
-              <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                View All Proposals
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              <Link to="/community">
+                <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                  View All Proposals
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
             </div>
 
             {activeVotes.map((vote) => (
